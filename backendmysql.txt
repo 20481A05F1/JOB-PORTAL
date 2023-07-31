@@ -1,0 +1,292 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+const mysql = require('mysql');
+const db = mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'sqluser',
+    password: 'password',
+    database: 'jobportal',
+});
+
+db.connect(err => {
+    if (err) {
+        console.log('error while connecting');
+    } else {
+        console.log('Database Connected Successfully!!!');
+    }
+});
+
+// define job schema and model
+const jobSchema = {
+    title: 'VARCHAR(255)',
+    description: 'VARCHAR(255)',
+    location: 'VARCHAR(255)',
+    salary: 'INT',
+};
+// add usertype column to users table
+// db.query('ALTER TABLE users ADD usertype VARCHAR(255)', (error, result) => {
+//     if (error) {
+//         console.error('Error adding usertype column:', error);
+//     } else {
+//         console.log('usertype column added to users table');
+//     }
+// });
+
+// Add company column to jobs table
+// db.query('ALTER TABLE jobs ADD company VARCHAR(255)', (error, result) => {
+//     if (error) {
+//         console.error('Error adding company column:', error);
+//     } else {
+//         console.log('company column added to jobs table');
+//     }
+// });
+
+// db.query(`
+//     ALTER TABLE jobs
+//     ADD jobtype VARCHAR(255),
+//     ADD experience VARCHAR(255);
+// `, (error, result) => {
+//     if (error) {
+//         console.error('Error adding columns:', error);
+//     } else {
+//         console.log('Columns added to jobs table');
+//     }
+// });
+
+
+
+app.post('/register', (req, res) => {
+    const { username, password, usertype } = req.body;
+    db.query(
+        'INSERT INTO users (username, password , usertype) VALUES (?, ? ,?)', [username, password, usertype],
+        (error, result) => {
+            if (error) {
+                console.error('Error creating user:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else {
+                const user = {
+                    id: result.insertId,
+                    username,
+                    password,
+                    usertype
+                };
+                const token = jwt.sign({ userId: user.id }, 'secret_key');
+                res.cookie('token', token, { httpOnly: true });
+                res.json(user);
+            }
+        }
+    );
+});
+
+// define routes
+app.post('/login', (req, res) => {
+    const { username, password, usertype } = req.body;
+    db.query(
+        'SELECT * FROM users WHERE username = ? AND password = ? AND usertype = ?', [username, password, usertype],
+        (error, results) => {
+            if (error) {
+                console.error('Error logging in:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else if (results.length === 0) {
+                res.status(401).json({ message: 'Invalid credentials' });
+            } else {
+                const user = {
+                    id: results[0].id,
+                    username: results[0].username,
+                    password: results[0].password,
+                    usertype: results[0].usertype, // add usertype to user object
+
+                };
+                const token = jwt.sign({ userId: results[0].id }, 'secret_key');
+                res.cookie('token', token, { httpOnly: true });
+                res.json({ token });
+            }
+        }
+    );
+});
+
+
+app.post('/logout', (req, res) => {
+    res.clearCookie('token');
+    res.json({ message: 'Logout successful' });
+});
+
+
+
+// middleware to check if user is authenticated
+function authenticateUser(req, res, next) {
+    const token = req.headers.authorization.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secret_key');
+        req.userId = decoded.userId;
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+}
+
+app.get('/jobs', authenticateUser, (req, res) => {
+    db.query('SELECT * FROM jobs', (error, results) => {
+        if (error) {
+            console.error('Error getting jobs:', error);
+            res.status(500).json({ message: 'Server error' });
+        } else {
+            const jobs = results.map(job => ({
+                id: job.id,
+                title: job.title,
+                description: job.description,
+                location: job.location,
+                salary: job.salary,
+                applylink: job.applylink,
+                company: job.company, // add company to job object
+                jobtype: job.jobtype,
+                experience: job.experience
+            }));
+            res.json(jobs);
+        }
+    });
+});
+
+
+// db.query('ALTER TABLE jobs ADD applylink VARCHAR(255)', (error, result) => {
+//     if (error) {
+//         console.error('Error adding applylink column:', error);
+//     } else {
+//         console.log('applylink column added to jobs table');
+//     }
+// });
+
+app.post('/jobs', authenticateUser, (req, res) => {
+    const { title, description, location, salary, applylink, company, jobtype, experience } = req.body;
+    db.query(
+        'INSERT INTO jobs (title, description, location, salary, applylink, company, jobtype, experience) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [title, description, location, salary, applylink, company, jobtype, experience],
+        (error, results) => {
+            if (error) {
+                console.error('Error creating job:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else {
+                res.json({ message: 'Job created successfully' });
+            }
+        }
+    );
+});
+
+
+// add route to update a specific job by id
+app.put('/jobs/:id', authenticateUser, isRecruiter, (req, res) => {
+    const jobId = req.params.id;
+    const { title, description, location, salary, applylink, company, jobtype, experience } = req.body;
+    db.query(
+        'UPDATE jobs SET title = ?, description = ?, location = ?, salary = ?, applylink = ?, company = ?, jobtype = ?, experience = ? WHERE id = ?',
+
+        [title, description, location, salary, applylink, company, jobtype, experience, jobId],
+        (error, result) => {
+            if (error) {
+                console.error('Error updating job:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else if (result.affectedRows === 0) {
+                res.status(404).json({ message: 'Job not found' });
+            } else {
+                res.json({ message: 'Job updated successfully' });
+            }
+        });
+});
+
+// add route to get a specific job by id
+app.get('/jobs/:id', authenticateUser, (req, res) => {
+    const jobId = req.params.id;
+    db.query('SELECT * FROM jobs WHERE id = ?', [jobId], (error, results) => {
+        if (error) {
+            console.error('Error getting job by id:', error);
+            res.status(500).json({ message: 'Server error' });
+        } else if (results.length === 0) {
+            res.status(404).json({ message: 'Job not found' });
+        } else {
+            const job = {
+                id: results[0].id,
+                title: results[0].title,
+                description: results[0].description,
+                location: results[0].location,
+                salary: results[0].salary,
+                applylink: results[0].applylink,
+                company: results[0].company,
+                jobtype: results[0].jobtype, // add jobtype to job object
+                experience: results[0].experience, // add experience to job object
+            };
+            res.json(job);
+        }
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+function setTokenCookie(req, res, next) {
+    const token = req.headers.authorization.split(' ')[1];
+    res.cookie('token', token, { httpOnly: true });
+    next();
+}
+
+
+// middleware to check if user is a recruiter
+function isRecruiter(req, res, next) {
+    const userId = req.userId;
+    db.query('SELECT * FROM users WHERE id = ?', userId, (error, results) => {
+        if (error) {
+            console.error('Error checking user type:', error);
+            res.status(500).json({ message: 'Server error' });
+        } else if (results[0].usertype !== 'recruiter') {
+            res.status(401).json({ message: 'Unauthorized' });
+        } else {
+            next();
+        }
+    });
+}
+
+
+function authenticateUser(req, res, next) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized token' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secret_key');
+        req.userId = decoded.userId;
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+}
+
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache');
+    next();
+});
+
+
+// start the server
+app.listen(3000, () => {
+    console.log(`Server listening on port 3000`);
+});

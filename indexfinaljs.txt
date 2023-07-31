@@ -1,0 +1,379 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const userSchema = new mongoose.Schema({
+    username: String,
+    password: String,
+    usertype: String,
+});
+
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
+
+
+const profileSchema = new mongoose.Schema({
+    fullname: String,
+    location: String,
+    email: String,
+    phoneNumber: String,
+    totalExperience: Number,
+    resume: Buffer
+});
+
+const Profile = mongoose.model('Profile', profileSchema);
+
+module.exports = Profile;
+
+
+// Define job schema and model
+const jobSchema = new mongoose.Schema({
+    title: String,
+    description: String,
+    location: String,
+    salary: Number,
+    applylink: String,
+    company: String,
+    jobtype: String,
+    experience: String,
+});
+
+const Job = mongoose.model('Job', jobSchema);
+
+module.exports = Job;
+
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(cookieParser());
+
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost/jobportal', { useNewUrlParser: true, useUnifiedTopology: true });
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+    console.log("Database Connected Successfully!!!");
+});
+
+
+// middleware to check if user is authenticated
+// function authenticateUser(req, res, next) {
+//     let token = "";
+//     const authHeader = req.headers.authorization;
+//     console.log('authHeader:', authHeader); // log the auth header to console
+//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//         return res.status(401).json({ message: 'Unauthorized token' });
+//     }
+//     token = authHeader.split(' ')[1];
+//     console.log('token:', token); // log the token to console
+
+//     try {
+//         const decoded = jwt.verify(token, 'secret_key');
+//         req.userId = decoded.userId;
+//         next();
+//     } catch (err) {
+//         return res.status(401).json({ message: 'Unauthorized' });
+//     }
+// }
+
+
+
+// add usertype column to users table
+// db.query('ALTER TABLE users ADD usertype VARCHAR(255)', (error, result) => {
+//     if (error) {
+//         console.error('Error adding usertype column:', error);
+//     } else {
+//         console.log('usertype column added to users table');
+//     }
+// });
+
+// Add company column to jobs table
+// db.query('ALTER TABLE jobs ADD company VARCHAR(255)', (error, result) => {
+//     if (error) {
+//         console.error('Error adding company column:', error);
+//     } else {
+//         console.log('company column added to jobs table');
+//     }
+// });
+
+// db.query(`
+//     ALTER TABLE jobs
+//     ADD jobtype VARCHAR(255),
+//     ADD experience VARCHAR(255);
+// `, (error, result) => {
+//     if (error) {
+//         console.error('Error adding columns:', error);
+//     } else {
+//         console.log('Columns added to jobs table');
+//     }
+// });
+
+
+
+
+// const Profile = require('./models/Profile');
+
+app.post('/profile', async(req, res) => {
+    const { fullname, location, email, phoneNumber, totalExperience, resume } = req.body;
+    try {
+        const profile = new Profile({
+            fullname,
+            location,
+            email,
+            phoneNumber,
+            totalExperience,
+            resume
+        });
+        await profile.save();
+        res.json(profile);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/profile/:id', async(req, res) => {
+    try {
+        const profile = await Profile.findById(req.params.id);
+        res.json(profile);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+// define routes
+app.post('/login', async(req, res) => {
+    const { username, password, usertype } = req.body;
+    const usersCollection = db.collection('users');
+    const user = await usersCollection.findOne({ username, usertype });
+
+    if (!user) {
+        console.log(username);
+        console.log(usertype);
+        console.log(password);
+        return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+        console.log(password);
+        console.log(user.password);
+        return res.status(401).json({ message: 'Invalid credentials password' });
+    }
+
+    const token = jwt.sign({ userId: user._id }, 'secret_key');
+    res.cookie('token', token, { httpOnly: true });
+    res.json({ user });
+});
+
+
+
+
+app.post('/logout', (req, res) => {
+    res.clearCookie('token');
+    res.json({ message: 'Logout successful' });
+});
+
+
+
+// Example usage in a route handler
+app.get('/users', async(req, res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
+
+app.get('/jobs', async(req, res) => {
+    try {
+        const jobs = await Job.find();
+        const formattedJobs = jobs.map((job) => ({
+            id: job._id,
+            title: job.title,
+            description: job.description,
+            location: job.location,
+            salary: job.salary,
+            applylink: job.applylink,
+            company: job.company,
+            jobtype: job.jobtype,
+            experience: job.experience,
+        }));
+        res.json(formattedJobs);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/jobs', async(req, res) => {
+    const { title, description, location, salary, applylink, company, jobtype, experience } = req.body;
+    try {
+        const job = new Job({
+            title,
+            description,
+            location,
+            salary,
+            applylink,
+            company,
+            jobtype,
+            experience,
+        });
+        await job.save();
+        res.json(job);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.put('/jobs/:id', async(req, res) => {
+    const { id } = req.params;
+    const { title, description, location, salary, applylink, company, jobtype, experience } = req.body;
+    try {
+        const job = await Job.findOneAndUpdate({ _id: id }, { title, description, location, salary, applylink, company, jobtype, experience }, { new: true });
+        res.json(job);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/jobs/:id', async(req, res) => {
+    const { id } = req.params;
+    try {
+        const job = await Job.findOneAndDelete({ _id: id });
+        res.json(job);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
+// db.query('ALTER TABLE jobs ADD applylink VARCHAR(255)', (error, result) => {
+//     if (error) {
+//         console.error('Error adding applylink column:', error);
+//     } else {
+//         console.log('applylink column added to jobs table');
+//     }
+// });
+
+// require MongoDB client
+const MongoClient = require('mongodb').MongoClient;
+
+// initialize MongoDB client and connect to database
+const uri = 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
+client.connect(err => {
+    if (err) {
+        console.error('Error connecting to MongoDB:', err);
+    } else {
+        console.log('Connected to MongoDB');
+    }
+});
+
+// function to get MongoDB collection
+function getJobsCollection() {
+    return client.db('jobsdb').collection('jobs');
+}
+
+
+// connect to the database
+client.connect((err) => {
+    if (err) {
+        console.error('Error connecting to MongoDB:', err);
+        process.exit(1);
+    }
+    console.log('Connected to MongoDB');
+    db = client.db('job_board');
+});
+
+// create a user in the database
+app.post('/register', async(req, res) => {
+    const { username, password, usertype } = req.body;
+    // Hash password before storing in database
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const usersCollection = db.collection('users');
+    usersCollection.insertOne({ username, password: hashedPassword, usertype }, (err, result) => {
+        if (err) {
+            console.error('Error creating user:', err);
+            res.status(500).json({ message: 'Server error' });
+        } else {
+            const user = {
+                id: result.insertedId,
+                username,
+                password: hashedPassword,
+                usertype,
+            };
+            const token = jwt.sign({ userId: user.id }, 'secret_key');
+            res.cookie('token', token, { httpOnly: true });
+            res.json(user);
+        }
+    });
+});
+
+
+// middleware function to set token cookie
+function setTokenCookie(req, res, next) {
+    const token = req.headers.authorization.split(' ')[1];
+    res.cookie('token', token, { httpOnly: true });
+    next();
+}
+
+// middleware to check if user is a recruiter
+// middleware to check if user is a recruiter
+function isRecruiter(req, res, next) {
+    const user = req.user;
+
+    if (user.usertype !== 'recruiter') {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    next();
+}
+
+async function authenticateUser(req, res, next) {
+    const token = req.cookies.token;
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized token' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secret_key');
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        req.user = user;
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+}
+
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache');
+    next();
+});
+
+
+// start the server
+app.listen(3000, () => {
+    console.log(`Server listening on port 3000`);
+});

@@ -1,0 +1,73 @@
+import { HttpClient } from "@angular/common/http";
+import { forwardRef,Inject,Injectable } from "@angular/core";
+import { catchError, Observable, tap, throwError } from "rxjs";
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private apiUrl = 'http://localhost:3000';
+  private token: string | null;
+  private _isLoggedIn = false;
+
+  constructor(private http: HttpClient) {
+    this.token = localStorage.getItem('token');
+    this._isLoggedIn = this.token !== null;
+  }
+
+
+  login(username: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { username, password })
+      .pipe(
+        tap(response => {
+          const token = response.token;
+          this.setToken(token);
+          localStorage.setItem('token', token);
+          this._isLoggedIn = true; // set isLoggedIn to true on successful login
+        }),
+        catchError(error => {
+          console.log(error);
+          return throwError(error);
+        })
+      );
+  }
+
+
+
+
+
+  logout(authService: AuthService): Observable<any> {
+    // clear token
+
+    this._isLoggedIn = false;
+    authService.clearToken();
+    return new Observable(observer => {
+      observer.complete();
+    });
+
+  }
+
+
+  isLoggedIn(): boolean {
+    return this._isLoggedIn;
+  }
+
+  getToken(): string | null {
+    return this.token;
+  }
+
+  getJobs(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/jobs`, { headers: { Authorization: `Bearer ${this.token}` } });
+  }
+
+  setToken(token: string) {
+    this.token = token;
+    localStorage.setItem('token', token);
+    this._isLoggedIn = true;
+  }
+
+  clearToken(): void {
+    this.token = null;
+    localStorage.removeItem('token');
+  }
+}

@@ -1,0 +1,90 @@
+import { Component } from '@angular/core';
+import { AuthService } from './auth.service';
+import { Job } from './jobs';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <div *ngIf="!isLoggedIn">
+      <h1>Login</h1>
+      <form (submit)="login()">
+        <label>
+          Username:
+          <input type="text" [(ngModel)]="username" name="username">
+        </label>
+        <br>
+        <label>
+          Password:
+          <input type="password" [(ngModel)]="password" name="password">
+        </label>
+        <br>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+    <div *ngIf="isLoggedIn">
+      <h1 center>Your Jobs</h1>
+      <button (click)="logout()">Logout</button>
+      <ul>
+        <li *ngFor="let job of jobs">
+          <h2>{{ job.title }}</h2>
+          <strong>JD</strong>
+          <p>{{ job.description }}</p>
+          <strong>LOCATION</strong>
+          <p>{{ job.location }}</p>
+          <strong>SALARY</strong>
+          <p>{{ job.salary }}</p>
+          <hr>
+        </li>
+      </ul>
+    </div>
+  `
+})
+export class AppComponent {
+  username: string;
+  password: string;
+  jobs: Job[];
+  private _isLoggedIn: boolean = false;
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+  login(): void {
+    this.authService.login(this.username, this.password).subscribe(
+      (response: any) => {
+        this.authService.setToken(response.token);
+        this._isLoggedIn = true;
+        this.getJobs();
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }
+
+  logout(): void {
+    this.authService.logout(this.authService).subscribe(
+      (response: any) => {
+        this.router.navigate(['/login']);
+        this._isLoggedIn = false;
+      },
+      (error: any) => {
+        console.log(error);
+      }
+    );
+  }
+
+  get isLoggedIn(): boolean {
+    return this._isLoggedIn;
+  }
+
+  getJobs(): void {
+    this.authService.getJobs().subscribe(
+      (jobs) => {
+        this.jobs = jobs;
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }
+}

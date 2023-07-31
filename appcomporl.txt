@@ -1,0 +1,162 @@
+<div class="mybox container  my-2" >
+<!-- Pills navs -->
+
+<!-- Pills content -->
+<div class="tab-content">
+
+  <div *ngIf="showLoginForm && !isLoggedIn" class="tab-pane fade show active" role="tabpanel" aria-labelledby="tab-login">
+  <div class="text-center">
+      <h4>JOBPORTAL LOGIN</h4>
+      <hr>
+
+
+      </div>
+  <form (submit)="login()">
+      <!-- Email input -->
+      <div class="form-group mb-4">
+      <label class="form-label" for="loginName">Enter Username</label>
+        <input type="email" id="loginName" class="form-control" [(ngModel)]="username" name="username"/>
+
+      </div>
+
+      <!-- Password input -->
+      <div class="form-group mb-4">
+      <label class="form-label" for="loginPassword">Enter Password</label>
+        <input type="password" id="loginPassword" class="form-control" [(ngModel)]="password" name="password"/>
+
+      </div>
+
+      <div class="form-group mb-4">
+      <label class="form-label" for="loginPassword">Login As</label>
+      <br>
+      <select id="usertype" name="usertype" [(ngModel)]="usertype"  >
+      <option value="admin">Job Poster</option>
+  <option value="user">Job Seeker</option>
+</select>
+
+
+      </div>
+
+
+
+      <!-- Submit button -->
+      <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+
+      <!-- Register buttons -->
+      <div class="text-center">
+        <p>Not a member? <a (click)="showLoginForm = false">Register</a></p>
+      </div>
+    </form>
+
+  </div>
+  <div *ngIf="!showLoginForm && !isLoggedIn" class="tab-pane fade show active"  role="tabpanel" >
+  <div class="text-center">
+      <h4>JOBPORTAL REGISTRATION</h4>
+      <hr>
+      <!-- Pills navs -->
+      <!-- <ul class="nav nav-pills nav-justified mb-3" id="ex1" role="tablist">
+  <li class="nav-item" role="presentation"
+      [ngClass]="{'active': !showLoginForm}"
+      (click)="showLoginForm = true">
+    <a class="nav-link active" role="tab" aria-selected="true">Login</a>
+  </li>
+  <li class="nav-item" role="presentation"
+      [ngClass]="{'active': showLoginForm}"
+      (click)="showLoginForm = false">
+    <a class="nav-link active" role="tab" aria-selected="false">Register</a>
+  </li>
+</ul> -->
+      </div>
+  <form (submit)="onRegister()">
+
+
+      <!-- Username input -->
+      <div class="form-outline mb-4">
+      <label class="form-label" for="registerUsername">Username</label>
+
+        <input type="text" id="registerUsername" class="form-control" [(ngModel)]="username" name="username"/>
+      </div>
+
+
+      <!-- Password input -->
+      <div class="form-outline mb-4">
+      <label class="form-label" for="registerPassword">Password</label>
+
+        <input type="password" id="registerPassword" class="form-control"  [(ngModel)]="password" name="password"/>
+      </div>
+
+      <!-- Repeat Password input -->
+      <div class="form-outline mb-4">
+      <label class="form-label" for="registerRepeatPassword">Register As</label>
+<br>
+      <select id="usertype" name="usertype" [(ngModel)]="usertype">
+  <option value="admin">Job Poster</option>
+  <option value="user">Job Seeker</option>
+</select>
+      </div>
+
+      <!-- Checkbox -->
+      <!-- <div class="form-check d-flex justify-content-center mb-4">
+  <input class="form-check-input me-2" type="checkbox" value="" id="registerCheck" checked aria-describedby="registerCheckHelpText" />
+  <label class="form-check-label" for="registerCheck">
+    I have read and agree to the terms
+  </label>
+</div> -->
+
+
+
+      <!-- Submit button -->
+      <button type="submit" class="btn btn-primary btn-block mb-3">Sign Up</button>
+      <div class="text-center">
+        <p>Already a member? <a (click)="showLoginForm = true">Login</a></p>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<div class="container-fluid mx-auto my-auto">
+
+
+  <div class="row mb-4" *ngIf="isLoggedIn && !showJobForm">
+
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center">
+      <h1 *ngIf="isLoggedIn"  class="text-center">WELCOME TO JOBPORTAL {{this.username}}!</h1>
+
+        <!-- <h1>Your Jobs</h1> -->
+        <div>
+          <!-- <button class="btn btn-secondary mr-3" (click)="logout()">Logout</button> -->
+          <button class="btn btn-primary" *ngIf="usertype === 'admin' && isLoggedIn" (click)="showJobForm = true">Add Job</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="isLoggedIn && !showJobForm">
+    <div class="col-md-6 mb-4" *ngFor="let job of jobs">
+    <div class="card h-100">
+  <div class="card-body">
+    <p class="card-title"><i class="bi bi-building-fill-check"></i>Company Name: {{ job.company }}</p>
+    <h6 class="card-title">Position : {{ job.title }}</h6>
+    <h6 class="card-title mb-2 text-muted"><strong>Location : </strong>{{ job.location }}</h6>
+    <p class="card-text"><span class="card-title">Job Description : </span>{{ job.description }}</p>
+    <p class="card-title">Experience : {{job.experience}}</p>
+    <p class="card-title">Job Type : {{ job.jobtype }}</p>
+    <button type="submit" (click)= "updateJob()">Update Job</button>
+  </div>
+  <div class="card-footer text-left" >
+    <a class="btn btn-primary text-light mx-1" href="//{{job.applylink}}" target="_blank" rel="noopener" >
+      <i class="bi bi-file-earmark-arrow-down"></i> Apply Now
+    </a>
+    <a class="btn btn-primary text-light mx-1" href="//{{job.applylink}}" target="_blank" rel="noopener" >
+      <i class="bi bi-envelope"></i> Contact Now
+    </a>
+
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>

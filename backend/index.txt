@@ -1,0 +1,276 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+const mysql = require('mysql');
+const db = mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'sqluser',
+    password: 'password',
+    database: 'jobportal',
+});
+
+db.connect(err => {
+    if (err) {
+        console.log('error while connecting');
+    } else {
+        console.log('Database Connected Successfully!!!');
+    }
+});
+
+// define job schema and model
+const jobSchema = {
+    title: 'VARCHAR(255)',
+    description: 'VARCHAR(255)',
+    location: 'VARCHAR(255)',
+    salary: 'INT',
+};
+
+// create jobs table if it doesn't exist
+// db.query(
+//   `CREATE TABLE IF NOT EXISTS jobs (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     title VARCHAR(255),
+//     description VARCHAR(255),
+//     location VARCHAR(255),
+//     salary INT
+//   )`,
+//   (error) => {
+//     if (error) {
+//       console.error('Error creating jobs table:', error);
+//     } else {
+//       console.log('Jobs table created');
+//     }
+//   }
+// );
+
+// define routes
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    db.query(
+        'SELECT * FROM users WHERE username = ? AND password = ?', [username, password],
+        (error, results) => {
+            if (error) {
+                console.error('Error logging in:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else if (results.length === 0) {
+                res.status(401).json({ message: 'Invalid credentials' });
+            } else {
+                const token = jwt.sign({ userId: results[0].id }, 'secret_key');
+                res.json({ token });
+            }
+        }
+    );
+});
+
+// middleware to check if user is authenticated
+function authenticateUser(req, res, next) {
+    const token = req.headers.authorization.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secret_key');
+        req.userId = decoded.userId;
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+}
+
+app.get('/jobs', authenticateUser, (req, res) => {
+    db.query('SELECT * FROM jobs', (error, results) => {
+        if (error) {
+            console.error('Error getting jobs:', error);
+            res.status(500).json({ message: 'Server error' });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+app.post('/jobs', authenticateUser, (req, res) => {
+    const { title, description, location, salary } = req.body;
+    db.query(
+        'INSERT INTO jobs (title, description, location, salary) VALUES (?, ?, ?, ?)', [title, description, location, salary],
+        (error, result) => {
+            if (error) {
+                console.error('Error creating job:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else {
+                const job = {
+                    id: result.insertId,
+                    title,
+                    description,
+                    location,
+                    salary,
+                };
+                res.json(job);
+            }
+        }
+    );
+});
+
+// start the server
+app.listen(3000, () => {
+    console.log(`Server listening on port 3000`);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+const mysql = require('mysql');
+const db = mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'sqluser',
+    password: 'password',
+    database: 'jobportal',
+
+});
+
+db.connect(err => {
+    if (err) {
+        console.log('error while connecting');
+    } else {
+        console.log('Database Connected Successfully!!!');
+    }
+});
+
+// define user schema and model
+const userSchema = {
+    username: 'VARCHAR(255)',
+    password: 'VARCHAR(255)',
+};
+
+// create users table if it doesn't exist
+db.query(
+    `CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE,
+    password VARCHAR(255)
+  )`,
+    (error) => {
+        if (error) {
+            console.error('Error creating users table:', error);
+        } else {
+            console.log('Users table created');
+        }
+    }
+);
+
+// define routes
+app.post('/register', (req, res) => {
+    const { username, password } = req.body;
+    const saltRounds = 10;
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) {
+            console.error('Error hashing password:', err);
+            res.status(500).json({ message: 'Server error' });
+        } else {
+            db.query(
+                'INSERT INTO users (username, password) VALUES (?, ?)', [username, hash],
+                (error, result) => {
+                    if (error) {
+                        console.error('Error creating user:', error);
+                        res.status(500).json({ message: 'Server error' });
+                    } else {
+                        const user = {
+                            id: result.insertId,
+                            username,
+                        };
+                        res.json(user);
+                    }
+                }
+            );
+        }
+    });
+});
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    db.query(
+        'SELECT * FROM users WHERE username = ?', [username],
+        (error, results) => {
+            if (error) {
+                console.error('Error logging in:', error);
+                res.status(500).json({ message: 'Server error' });
+            } else if (results.length === 0) {
+                res.status(401).json({ message: 'Invalid credentials' });
+            } else {
+                bcrypt.compare(password, results[0].password, (err, result) => {
+                    if (err) {
+                        console.error('Error comparing passwords:', err);
+                        res.status(500).json({ message: 'Server error' });
+                    } else if (result) {
+                        const token = jwt.sign({ userId: results[0].id }, 'secret_key');
+                        res.json({ token });
+                    } else {
+                        res.status(401).json({ message: 'Invalid credentials' });
+                    }
+                });
+            }
+        }
+    );
+});
+
+// middleware to check if user is authenticated
+function authenticateUser(req, res, next) {
+    const token = req.headers.authorization;
+    if (!token) {
+        return res.status(401).json({ message: 'Authentication token missing' });
+    }
+    try {
+        const decoded = jwt.verify(token, 'secret_key');
+        const userId = decoded.userId;
+        db.query(
+            'SELECT * FROM users WHERE id = ?', [userId],
+            (error, results) => {
+                if (error) {
+                    console.error('Error fetching user:', error);
+                    res.status(500).json({ message: 'Server error' });
+                } else if (results.length === 0) {
+                    res.status(401).json({ message: 'Invalid user' });
+                } else {
+                    req.user = {
+                        id: results[0].id,
+                        username: results[0].username,
+                        email: results[0].email,
+                    };
+                    next();
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        res.status(401).json({ message: 'Authentication failed' });
+    }
+}
+
+// GET request for jobs after successful login
+app.get('/jobs', authenticateUser, (req, res) => {
+    // You can add your database query to fetch jobs here
+    res.json({ message: 'Jobs fetched successfully' });
+});
