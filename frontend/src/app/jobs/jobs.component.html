@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Job Advertising</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" />
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+</head>
+
+<body>
+
+    <div class="alert alert-primary" role="alert" *ngIf="!isLoggedIn">
+        <i class="fas fa-info-circle mr-2"></i> Please login to view available job listings.
+    </div>
+
+    <!-- Navigation bar -->
+    <div class="container-fluid row mb-4" *ngIf="isLoggedIn && !showJobForm">
+        <div class="col-md-12">
+            <div class="container p-3 ">
+                <h3 *ngIf="usertype === 'admin' && isLoggedIn" class="text-center">Welcome to Job Portal {{this.username}}! Add Jobs and Manage Your Career with Ease
+
+
+
+
+                </h3>
+
+                <div>
+                    <hr>
+                    <div class="container d-flex justify-content-center align-items-center">
+                        <!-- <button class="btn btn-secondary mr-3" (click)="logout()">
+                      <i class="bi bi-box-arrow-right"></i> Logout
+                    </button> -->
+
+                        <button class="btn btn-primary" *ngIf="usertype === 'admin' && isLoggedIn" routerLink="/addjob">
+                <i class="bi bi-plus-lg"></i> Add Job
+              </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banner -->
+    <div class="container-fluid mt-5 " *ngIf="usertype === 'user' && isLoggedIn">
+        <div class="jumbotron">
+            <h1 class="display-4">Join Our Team!</h1>
+            <p class="lead">We're hiring for multiple positions in our growing company. If you're passionate about your work and want to be part of a dynamic team, we'd love to hear from you!</p>
+            <hr class="my-4" />
+            <p>Check out our current job openings below and apply today.</p>
+            <!-- <a class="btn btn-primary btn-lg" (click)="filterJobs()" role="button">View Jobs</a> -->
+
+            <!-- Job Listings -->
+            <div class="container my-5">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Search by Position" [(ngModel)]="positionFilter">
+                        </div>
+
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Search by Location" [(ngModel)]="locationFilter">
+                        </div>
+                    </div>
+                    <!-- <button class="btn btn-primary mb-2" (click)="filterJobs()">Filter</button> -->
+
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <!-- Job Listings -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6" *ngFor="let job of jobs | filter:{title: positionFilter, location: locationFilter}">
+
+                <div class="card my-2">
+                    <h5 class="card-header">{{job.company}}</h5>
+                    <div class="card-body">
+                        <h5 class="card-title">{{job.title}}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ job.jobtype }}</h6>
+                        <p class="card-text">{{job.description}}</p>
+                        <p class="card-text"><strong>Salary: </strong>{{job.salary}}</p>
+                        <p class="card-text"><strong>Experience: </strong>{{job.experience}}</p>
+                        <p class="card-text"><strong>Location: </strong>{{job.location}}</p>
+
+                        <button href="#" class="btn  card-link" *ngIf="usertype === 'user' && isLoggedIn">Apply Now <i class="fas fa-arrow-right"></i></button>
+                        <button href="#" class="btn  card-link" *ngIf="usertype === 'user' && isLoggedIn" routerLink="/profile">Apply This Job <i class="fas fa-arrow-right"></i></button>
+
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.min.js"></script>
+</body>
+
+
+</html>

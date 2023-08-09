@@ -1,0 +1,71 @@
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+</head>
+<div class="container">
+  <h4>ADD YOUR JOB DETAILS</h4>
+  <form [formGroup]="jobForm" (ngSubmit)="onSubmit()" class="mt-4">
+      <div class="form-group">
+          <label for="title">Title:</label>
+          <input type="text" id="title" formControlName="title" class="form-control">
+          <div *ngIf="jobForm.controls['title'].errors?.['required']" class="invalid-feedback">Title is required.</div>
+      </div>
+
+      <div class="form-group">
+          <label for="description">Description:</label>
+          <textarea id="description" formControlName="description" class="form-control"></textarea>
+          <div *ngIf="jobForm.controls['description'].errors?.['required']" class="invalid-feedback">Description is required.</div>
+      </div>
+
+      <div class="form-group">
+          <label for="location">Location:</label>
+          <input type="text" id="location" formControlName="location" class="form-control">
+          <div *ngIf="jobForm.controls['location'].errors?.['required']" class="invalid-feedback">Location is required.</div>
+      </div>
+
+      <div class="form-group">
+          <label for="salary">Salary:</label>
+          <input type="text" id="salary" formControlName="salary" class="form-control">
+          <div *ngIf="jobForm.controls['salary'].errors?.['required']" class="invalid-feedback">Salary is required.</div>
+      </div>
+
+      <div class="form-group">
+          <label for="jobtype">Job Type :</label>
+          <input type="text" id="jobtype" formControlName="jobtype" class="form-control">
+          <div *ngIf="jobForm.controls['jobtype'].errors?.['required']" class="invalid-feedback">Job Type is required.</div>
+      </div>
+      <!-- <div class="form-group">
+      <label for="experience">Experience Needed :</label>
+      <input type="text" id="experience" formControlName="experience" class="form-control">
+      <div *ngIf="jobForm.controls['experience'].errors?.['required']" class="invalid-feedback">Experience is required.</div>
+  </div> -->
+
+      <div class="form-group mb-4">
+          <label class="form-label" for="registerRepeatPassword">Choose Experience Needed :</label>
+
+          <select id="experience" formControlName="experience" [(ngModel)]="experienceneeded">
+<option value="0 - 6 months">)0 - 6 months</option>
+<option value="6 - 12 months">6 - 12 months</option>
+<option value="1 - 2 years">1 - 2 years</option>
+<option value="2 - 4 years">2 - 4 years</option>
+<option value="More than 5 years">More than 5 years</option>
+</select>
+          <div *ngIf="jobForm.controls['experience'].errors?.['required']" class="invalid-feedback">Experience is required.</div>
+      </div>
+
+      <div class="form-group">
+          <label for="company">Company Name:</label>
+          <input type="text" id="company" formControlName="company" class="form-control">
+          <div *ngIf="jobForm.controls['company'].errors?.['required']" class="invalid-feedback">Company is required.</div>
+      </div>
+
+      <div class="form-group">
+          <label for="applylink">Job Apply Link:</label>
+          <input type="text" id="applylink" formControlName="applylink" class="form-control">
+      </div>
+
+      <div class="text-center">
+          <button type="submit" class="btn btn-primary mx-2" [disabled]="!jobForm.valid">Submit</button>
+          <button type="button" class="btn btn-secondary mx-2" (click)="goBack()">Back</button>
+      </div>
+  </form>
+</div>

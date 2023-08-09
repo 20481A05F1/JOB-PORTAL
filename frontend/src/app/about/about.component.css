@@ -1,0 +1,19 @@
+/* About Section */
+
+#about .card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+#about .card-text {
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+#about .card-body i {
+    font-size: 3rem;
+    color: #007bff;
+    margin-bottom: 1rem;
+    display: block;
+}

@@ -1,0 +1,30 @@
+/* Animations */
+
+#sectioncontact {
+    animation: fadeIn 1s ease-in-out;
+}
+
+.form-group,
+.btn-primary {
+    animation: fadeInUp 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

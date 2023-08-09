@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" />
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+</head>
+
+<body>
+
+
+    <div class="container my-5" id="sectioncontact">
+        <div class="row">
+            <div class="col-md-4 mx-auto">
+                <h2 class="text-center mb-4">Contact Us</h2>
+                <p class="animated fadeInUp">If you have any questions or feedback about our job portal, please use the form below to get in touch with us. We'll get back to you as soon as possible.</p>
+                <form class="animated fadeIn" (submit)="onMessage()">
+                    <div class="form-group">
+                        <label for="name"><i class="bi bi-person-fill"></i> Name:</label>
+                        <input type="text" [(ngModel)]="name" name="name" class="form-control" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email"><i class="bi bi-envelope-fill"></i> Email:</label>
+                        <input type="email" [(ngModel)]="email" name="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject"><i class="bi bi-chat-dots-fill"></i> Subject:</label>
+                        <input type="text" [(ngModel)]="subject" name="subject" class="form-control" id="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message"><i class="bi bi-chat-fill"></i> Message:</label>
+                        <textarea class="form-control" [(ngModel)]="message" name="message" id="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary animated pulse"> Submit <i class="bi bi-arrow-right"></i></button>
+                </form>
+
+            </div>
+            <div class="col-md-8 mx-auto">
+                <div class="text-center mt-5">
+                    <img src="../../assets/undraw_contact_us_re_4qqt.svg" alt="Contact Us Image">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="h1"> {{this.name}} </div>
+
+
+
+</body>
+
+</html>

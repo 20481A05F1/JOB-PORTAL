@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Job Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            padding-top: 56px;
+            padding-bottom: 120px;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: aliceblue;
+            padding: 20px 0;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .fade-in {
+            animation: fade-in 0.5s ease-in-out;
+        }
+        
+        @keyframes fade-in {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand">JPortal</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/jobs">
+                            <i class="fas fa-briefcase"></i> Jobs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/about">
+                            <i class="fas fa-info-circle"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/contact">
+                            <i class="fas fa-envelope"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <ng-container *ngIf="isLoggedIn; else showLogin">
+                        <li class="nav-item">
+                            <button class="btn btn-secondary btn-sm" (click)="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                        </li>
+                    </ng-container>
+                    <ng-template #showLogin>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    </ng-template>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+
+
+    <div class="content fade-in">
+        <router-outlet></router-outlet>
+    </div>
+
+</body>
+<!-- Footer -->
+<footer class="text-dark" style="background-color: aliceblue;">
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-md-4">
+                <h4>Job Portal</h4>
+                <p class="text-muted">Thank you for choosing our job portal. We're dedicated to making your job search easy and effective. Contact us with any questions or feedback. Follow us on social media for the latest job postings and career advice. Good luck in your
+                    search!
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h4>Useful Links</h4>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="/jobs"><i class="fas fa-briefcase"></i> Jobs</a></li>
+                    <li><a href="/about"><i class="fas fa-info-circle"></i> About Us</a></li>
+                    <li><a href="/contact"><i class="fas fa-envelope"></i> Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h4>Contact Us</h4>
+                <ul class="list-unstyled footer-contact">
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Main St. New York, NY 10001</li>
+                    <li><i class="fas fa-phone"></i> (123) 456-7890</li>
+                    <li><i class="fas fa-envelope"></i> info@jobportal.com</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="bg-secondary p-5">
+        <div class="container text-center">
+            <p class="text-light mb-0 float-left">&copy; 2023 Job Portal. All rights reserved. </p>
+            <p class="text-light mb-0 float-right">&copy; Developed by Nitesh Kudmethe. </p>
+        </div>
+    </div>
+</footer>
+
+
+
+
+</html>

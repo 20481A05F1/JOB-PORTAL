@@ -1,0 +1,14 @@
+.carousel-control-prev,
+.carousel-control-next {
+    font-size: 2rem;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.card:hover {
+    background-color: #f5f5f5;
+}
