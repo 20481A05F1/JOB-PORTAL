@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 // Define database connection
-mongoose.connect('mongodb://localhost/jobportal', {
+mongoose.connect('mongodb://127.0.0.1/jobportal', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
@@ -68,7 +68,26 @@ const User = mongoose.model('User', userSchema);
 const Profile = mongoose.model('Profile', profileSchema);
 const Job = mongoose.model('Job', jobSchema);
 const Contact = mongoose.model('Contact', contactSchema);
-
+app.post('/register',async(req,res)=>{
+    const {username,password,usertype}=req.body;
+    const existingUser=await User.findOne({username});
+    if (existingUser){
+        return res.status(409).json({mesage:'user already exists'});
+    }
+    const hashedPassword=await bcrypt.hash(password,10);
+    const newUser=new User({
+        username,
+        password:hashedPassword,
+        usertype
+    });
+    try {
+        await newUser.save();
+        res.status(201).json({mesage:'Registration Sucessful'});
+    }
+    catch(error){
+        res.status(500).json({message:'Registration failed',error});
+    }
+});
 app.post('/contact', async(req, res) => {
     const { name, email, subject, message } = req.body;
     try {
@@ -213,8 +232,7 @@ app.get('/resume/:userId', async(req, res) => {
 
 
 // Start the server
-app.listen(3000, () => {
-    console.log(`Server listening on port 3000`);
-});
 
 //End of the code.
+const port = 3000;
+app.listen(port, () => console.log(`Server started on port ${port}`));
